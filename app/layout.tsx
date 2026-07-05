@@ -20,6 +20,9 @@ const caveat = Caveat({
 export const metadata: Metadata = {
   title: "Reverie",
   description: "Koleksi dongeng malam indah yang ditulis khusus untuk menemani tidurmu.",
+  icons: {
+    icon: "/reveriee.png",
+  },
 };
 
 export default function RootLayout({

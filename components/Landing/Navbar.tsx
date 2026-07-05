@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { BookOpen, Key } from "lucide-react";
 
 export default function Navbar() {
   const [isLocal, setIsLocal] = useState(false);
@@ -32,9 +31,9 @@ export default function Navbar() {
         {/* Brand/Welcome Logo */}
         <button
           onClick={scrollToTop}
-          className="flex items-center gap-1.5 hover:scale-105 active:scale-95 transition-all cursor-pointer"
+          className="flex items-center gap-2 hover:scale-105 active:scale-95 transition-all cursor-pointer"
         >
-          <BookOpen className="w-4 h-4 text-yellow-500/80 animate-pulse" />
+          <img src="/reveriee.png" alt="Reverie Logo" className="w-5 h-5 object-contain" />
           <span className="font-serif italic font-semibold text-[13px] tracking-wide text-[#fff4d6]">Reverie</span>
         </button>
 
