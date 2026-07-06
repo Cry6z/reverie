@@ -13,6 +13,11 @@ export default function AdminPage() {
   const [loveLetterContent, setLoveLetterContent] = useState("");
   const [isLocalhost, setIsLocalhost] = useState<boolean | null>(null);
   const [stars, setStars] = useState<{ id: number; left: number; top: number; size: number; delay: number }[]>([]);
+  const [siteSettings, setSiteSettings] = useState({
+    mode: "auto" as "auto" | "open" | "closed",
+    startHour: 19,
+    endHour: 24,
+  });
 
   // Check if access is from localhost
   useEffect(() => {
@@ -54,7 +59,28 @@ export default function AdminPage() {
         if (storiesError) throw storiesError;
 
         if (dbStories) {
-          const mappedStories: Story[] = dbStories.map((s: any) => ({
+          // Parse site settings
+          const settingsStory = dbStories.find((s: any) => s.id === "site_settings");
+          if (settingsStory) {
+            try {
+              const mode = settingsStory.excerpt as "auto" | "open" | "closed";
+              const [startStr, endStr] = settingsStory.content.split("-");
+              const start = parseInt(startStr, 10);
+              const end = parseInt(endStr, 10);
+              setSiteSettings({
+                mode: mode || "auto",
+                startHour: isNaN(start) ? 19 : start,
+                endHour: isNaN(end) ? 24 : end
+              });
+            } catch (err) {
+              console.error("Gagal parse site_settings:", err);
+            }
+          }
+
+          // Filter out site_settings from list
+          const publicStories = dbStories.filter((s: any) => s.id !== "site_settings");
+
+          const mappedStories: Story[] = publicStories.map((s: any) => ({
             id: s.id,
             title: s.title,
             excerpt: s.excerpt,
@@ -168,6 +194,45 @@ export default function AdminPage() {
     }
   };
 
+  // Site Settings Handler
+  const handleSaveSiteSettings = async (mode: "auto" | "open" | "closed", start: number, end: number) => {
+    setSiteSettings({ mode, startHour: start, endHour: end });
+    try {
+      const { data: existing } = await supabase
+        .from("stories")
+        .select("id")
+        .eq("id", "site_settings")
+        .single();
+
+      if (existing) {
+        const { error } = await supabase
+          .from("stories")
+          .update({
+            excerpt: mode,
+            content: `${start}-${end}`,
+            created_at: new Date().toISOString()
+          })
+          .eq("id", "site_settings");
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("stories")
+          .insert([{
+            id: "site_settings",
+            title: "Site Settings",
+            excerpt: mode,
+            content: `${start}-${end}`,
+            mood: "tenang",
+            duration: 0,
+            created_at: new Date().toISOString()
+          }]);
+        if (error) throw error;
+      }
+    } catch (err) {
+      console.error("Gagal menyimpan pengaturan situs ke Supabase:", err);
+    }
+  };
+
   // Render Access Denied for non-localhost
   if (isLocalhost === false) {
     return (
@@ -213,6 +278,8 @@ export default function AdminPage() {
         onResetStories={handleResetStories}
         loveLetterContent={loveLetterContent}
         onSaveLoveLetter={handleSaveLoveLetter}
+        siteSettings={siteSettings}
+        onSaveSiteSettings={handleSaveSiteSettings}
       />
     </main>
   );

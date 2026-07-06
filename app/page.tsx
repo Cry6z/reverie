@@ -8,6 +8,7 @@ import StoryReader from "@/components/StoryReader";
 
 import WelcomeScreen from "@/components/WelcomeScreen";
 import { supabase } from "@/app/utils/supabaseClient";
+import SleepingScreen from "@/components/Landing/SleepingScreen";
 
 // Sub-components
 import StarryBackdrop from "@/components/Landing/StarryBackdrop";
@@ -36,6 +37,38 @@ export default function Home() {
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [ceweName, setCeweName] = useState("");
   const [isLocalhost, setIsLocalhost] = useState(false);
+
+  // Site scheduling settings
+  const [siteMode, setSiteMode] = useState<"auto" | "open" | "closed">("auto");
+  const [startHour, setStartHour] = useState(19); // 7 PM
+  const [endHour, setEndHour] = useState(24); // 12 AM
+  const [isSiteOpen, setIsSiteOpen] = useState(true);
+
+  // Monitor site open/closed status based on schedule & settings
+  useEffect(() => {
+    const checkOpenStatus = () => {
+      if (siteMode === "open") {
+        setIsSiteOpen(true);
+      } else if (siteMode === "closed") {
+        setIsSiteOpen(false);
+      } else {
+        // Mode is "auto"
+        const now = new Date();
+        const currentHour = now.getHours();
+        
+        if (startHour <= endHour) {
+          setIsSiteOpen(currentHour >= startHour && currentHour < endHour);
+        } else {
+          // Overnight schedule, e.g. 19:00 - 02:00
+          setIsSiteOpen(currentHour >= startHour || currentHour < endHour);
+        }
+      }
+    };
+
+    checkOpenStatus();
+    const interval = setInterval(checkOpenStatus, 5000);
+    return () => clearInterval(interval);
+  }, [siteMode, startHour, endHour]);
 
   // Modal states
   const [activeStory, setActiveStory] = useState<Story | null>(null);
@@ -80,6 +113,17 @@ export default function Home() {
     const isSessionWelcomed = sessionStorage.getItem("reverie_session_welcomed") === "true";
     if (isSessionWelcomed) {
       setIsUnlocked(true);
+    }
+
+    // 0.7. Site settings local fallback
+    const savedSettings = localStorage.getItem("reverie_site_settings");
+    if (savedSettings) {
+      try {
+        const parsed = JSON.parse(savedSettings);
+        setSiteMode(parsed.mode || "auto");
+        setStartHour(parsed.startHour !== undefined ? parsed.startHour : 19);
+        setEndHour(parsed.endHour !== undefined ? parsed.endHour : 24);
+      } catch (e) {}
     }
 
     // 1. Stories local fallback
@@ -136,7 +180,33 @@ export default function Home() {
         if (storiesError) throw storiesError;
 
         if (dbStories) {
-          const mappedStories: Story[] = dbStories.map((s: any) => ({
+          // Find settings row
+          const settingsStory = dbStories.find((s: any) => s.id === "site_settings");
+          if (settingsStory) {
+            try {
+              const mode = settingsStory.excerpt as "auto" | "open" | "closed";
+              const [startStr, endStr] = settingsStory.content.split("-");
+              const start = parseInt(startStr, 10);
+              const end = parseInt(endStr, 10);
+
+              setSiteMode(mode);
+              setStartHour(isNaN(start) ? 19 : start);
+              setEndHour(isNaN(end) ? 24 : end);
+
+              localStorage.setItem("reverie_site_settings", JSON.stringify({
+                mode,
+                startHour: isNaN(start) ? 19 : start,
+                endHour: isNaN(end) ? 24 : end
+              }));
+            } catch (err) {
+              console.error("Gagal parse site_settings:", err);
+            }
+          }
+
+          // Filter out site_settings from stories list
+          const publicStories = dbStories.filter((s: any) => s.id !== "site_settings");
+
+          const mappedStories: Story[] = publicStories.map((s: any) => ({
             id: s.id,
             title: s.title,
             excerpt: s.excerpt,
@@ -403,6 +473,16 @@ export default function Home() {
     const matchesMood = selectedMood === "all" || story.mood === selectedMood;
     return matchesSearch && matchesMood;
   });
+
+  if (!isSiteOpen) {
+    return (
+      <SleepingScreen
+        siteMode={siteMode}
+        startHour={startHour}
+        endHour={endHour}
+      />
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground relative flex flex-col font-sans transition-colors duration-500 overflow-hidden pb-12">

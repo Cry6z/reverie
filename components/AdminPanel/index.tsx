@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { X, BookOpen, Heart, LogOut, CheckCircle2 } from "lucide-react";
+import { X, BookOpen, Heart, LogOut, CheckCircle2, Settings } from "lucide-react";
 import { Story } from "@/app/data/initialStories";
 
 import LoginScreen from "./LoginScreen";
 import StoryTab from "./StoryTab";
 import LoveLetterTab from "./LoveLetterTab";
+import SettingsTab from "./SettingsTab";
 
 interface AdminPanelProps {
   stories: Story[];
@@ -18,9 +19,20 @@ interface AdminPanelProps {
 
   loveLetterContent: string;
   onSaveLoveLetter: (content: string) => void;
+
+  siteSettings: {
+    mode: "auto" | "open" | "closed";
+    startHour: number;
+    endHour: number;
+  };
+  onSaveSiteSettings: (
+    mode: "auto" | "open" | "closed",
+    startHour: number,
+    endHour: number
+  ) => void;
 }
 
-type Tab = "stories" | "loveletter";
+type Tab = "stories" | "loveletter" | "settings";
 
 export default function AdminPanel({
   stories,
@@ -31,6 +43,8 @@ export default function AdminPanel({
   onResetStories,
   loveLetterContent,
   onSaveLoveLetter,
+  siteSettings,
+  onSaveSiteSettings,
 }: AdminPanelProps) {
   const [passcode, setPasscode] = useState("");
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -138,16 +152,16 @@ export default function AdminPanel({
           <div className="relative flex bg-white/5 border border-white/5 p-1 rounded-full items-center select-none">
             {/* Sliding Pill Indicator */}
             <div 
-              className={`absolute top-1 bottom-1 rounded-full bg-white/10 transition-all duration-300 ease-out`}
+              className="absolute top-1 bottom-1 rounded-full bg-white/10 transition-all duration-300 ease-out"
               style={{
-                left: activeTab === "stories" ? "4px" : "50%",
-                width: activeTab === "stories" ? "48%" : "46%"
+                left: activeTab === "stories" ? "4px" : activeTab === "loveletter" ? "34.5%" : "67.5%",
+                width: "30.5%"
               }}
             />
 
             <button
               onClick={() => setActiveTab("stories")}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 z-10 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 z-10 cursor-pointer ${
                 activeTab === "stories" ? "text-[#fff4d6]" : "text-white/40 hover:text-white/70"
               }`}
             >
@@ -156,12 +170,21 @@ export default function AdminPanel({
             </button>
             <button
               onClick={() => setActiveTab("loveletter")}
-              className={`px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 z-10 cursor-pointer ${
+              className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 z-10 cursor-pointer ${
                 activeTab === "loveletter" ? "text-[#fff4d6]" : "text-white/40 hover:text-white/70"
               }`}
             >
               <Heart className="w-3 h-3" />
               <span>Surat</span>
+            </button>
+            <button
+              onClick={() => setActiveTab("settings")}
+              className={`px-3 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider transition-colors flex items-center gap-1.5 z-10 cursor-pointer ${
+                activeTab === "settings" ? "text-[#fff4d6]" : "text-white/40 hover:text-white/70"
+              }`}
+            >
+              <Settings className="w-3 h-3" />
+              <span>Situs</span>
             </button>
           </div>
 
@@ -202,6 +225,14 @@ export default function AdminPanel({
               loveLetter={loveLetter}
               setLoveLetter={setLoveLetter}
               handleSaveLoveLetter={handleSaveLoveLetter}
+            />
+          )}
+
+          {activeTab === "settings" && (
+            <SettingsTab
+              siteSettings={siteSettings}
+              onSaveSiteSettings={onSaveSiteSettings}
+              triggerSuccess={triggerSuccess}
             />
           )}
         </div>
