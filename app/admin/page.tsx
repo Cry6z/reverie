@@ -269,17 +269,17 @@ export default function AdminPage() {
         <StarryBackdrop stars={stars} shootingStars={[]} />
 
         {/* Password Card Container */}
-        <div className="relative z-10 w-full max-w-sm p-0.5 rounded-3xl bg-linear-to-b from-purple-500/10 to-pink-500/5 shadow-2xl">
+        <div className="relative z-10 w-full max-w-sm p-0.5 rounded-3xl bg-linear-to-b from-zinc-700/20 to-zinc-900/10 shadow-2xl">
           <div className={`bg-[#0c0a09]/90 backdrop-blur-xl p-8 rounded-[22px] flex flex-col gap-6 items-center border border-zinc-900/60 ${isShaking ? 'animate-shake' : ''}`}>
             
             {/* Logo/Icon Header */}
-            <div className="w-12 h-12 rounded-full bg-linear-to-tr from-purple-500/10 to-pink-500/10 flex items-center justify-center border border-purple-500/20 shadow-inner">
-              <Lock className="w-4 h-4 text-purple-400" />
+            <div className="w-12 h-12 rounded-full bg-linear-to-tr from-zinc-800/30 to-zinc-900/30 flex items-center justify-center border border-zinc-800 shadow-inner">
+              <Lock className="w-4 h-4 text-zinc-300" />
             </div>
 
             {/* Title & Desc */}
             <div className="text-center flex flex-col gap-1.5">
-              <h1 className="text-xl font-bold font-serif bg-linear-to-r from-purple-200 via-zinc-100 to-pink-200 bg-clip-text text-transparent">
+              <h1 className="text-xl font-bold font-serif bg-linear-to-r from-zinc-100 via-zinc-200 to-zinc-400 bg-clip-text text-transparent">
                 Akses Terproteksi
               </h1>
               <p className="text-[11px] text-zinc-400 max-w-xs mx-auto leading-relaxed">
@@ -298,7 +298,7 @@ export default function AdminPage() {
                     setPasswordInput(e.target.value);
                     if (passwordError) setPasswordError("");
                   }}
-                  className="w-full bg-[#141211] border border-zinc-800 focus:border-purple-500/65 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-600 outline-none transition-all duration-300 pr-10"
+                  className="w-full bg-[#141211] border border-zinc-800 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500/30 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-600 outline-none transition-all duration-300 pr-10"
                   autoFocus
                 />
                 <button
@@ -324,7 +324,7 @@ export default function AdminPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                className="w-full mt-1 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium py-2.5 px-4 rounded-xl text-[10px] uppercase tracking-wider transition-all duration-300 shadow-md shadow-purple-500/10 active:scale-[0.98] cursor-pointer"
+                className="w-full mt-1 bg-white hover:bg-zinc-200 text-black font-semibold py-2.5 px-4 rounded-xl text-[10px] uppercase tracking-wider transition-all duration-300 shadow-md shadow-white/5 active:scale-[0.98] cursor-pointer"
               >
                 Masuk
               </button>
