@@ -72,6 +72,26 @@ export default function WelcomeScreen({ onUnlock }: WelcomeScreenProps) {
     return () => clearTimeout(fadeTimer);
   }, []);
 
+  // Lock body scroll and prevent touchmove default behavior on mobile devices
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    document.body.style.height = "100vh";
+
+    const preventScroll = (e: TouchEvent) => {
+      // Prevent scrolling the body
+      e.preventDefault();
+    };
+
+    document.addEventListener("touchmove", preventScroll, { passive: false });
+
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.height = "";
+      document.removeEventListener("touchmove", preventScroll);
+    };
+  }, []);
+
+
   // Multi-phase timeline intro transition
   useEffect(() => {
     if (!isMounted || screenState !== "intro") return;
@@ -211,7 +231,7 @@ export default function WelcomeScreen({ onUnlock }: WelcomeScreenProps) {
     <div 
       onMouseMove={handleMouseMove}
       onTouchMove={handleTouchMove}
-      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 transition-all duration-1200 ease-in-out select-none ${
+      className={`fixed inset-0 z-50 flex flex-col items-center justify-center bg-background px-6 overflow-hidden transition-all duration-1200 ease-in-out select-none ${
         isFadingIn 
           ? "opacity-0 scale-105" 
           : screenState === "fadeout" 
@@ -246,7 +266,7 @@ export default function WelcomeScreen({ onUnlock }: WelcomeScreenProps) {
 
       {/* Screen State Content Area */}
       <div 
-        className={`max-w-md w-full flex flex-col items-center text-center z-10 transition-all duration-500 ease-in-out ${
+        className={`max-w-md w-full flex flex-col items-center text-center z-10 pb-16 md:pb-24 transition-all duration-500 ease-in-out ${
           isTransitioning ? "opacity-0 scale-95" : "opacity-100 scale-100"
         }`}
       >
