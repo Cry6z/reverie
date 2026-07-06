@@ -6,12 +6,17 @@ import { Story } from "../data/initialStories";
 import AdminPanel from "@/components/AdminPanel";
 import StarryBackdrop from "@/components/Landing/StarryBackdrop";
 import { supabase } from "@/app/utils/supabaseClient";
+import { Eye, EyeOff, Lock, ArrowLeft } from "lucide-react";
 
 export default function AdminPage() {
   const router = useRouter();
   const [stories, setStories] = useState<Story[]>([]);
   const [loveLetterContent, setLoveLetterContent] = useState("");
-  const [isLocalhost, setIsLocalhost] = useState<boolean | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [isShaking, setIsShaking] = useState(false);
   const [stars, setStars] = useState<{ id: number; left: number; top: number; size: number; delay: number }[]>([]);
   const [siteSettings, setSiteSettings] = useState({
     mode: "auto" as "auto" | "open" | "closed",
@@ -19,18 +24,29 @@ export default function AdminPage() {
     endHour: 24,
   });
 
-  // Check if access is from localhost
+  // Check if session is already authenticated
   useEffect(() => {
     if (typeof window !== "undefined") {
-      const hostname = window.location.hostname;
-      const isLocal = 
-        hostname === "localhost" || 
-        hostname === "127.0.0.1" || 
-        hostname === "::1" || 
-        hostname.startsWith("192.168.");
-      setIsLocalhost(isLocal);
+      const isAuth = sessionStorage.getItem("admin_authenticated") === "true";
+      setIsAuthenticated(isAuth);
     }
   }, []);
+
+  // Handle password submission
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const correctPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "reverieadmin123";
+    
+    if (passwordInput === correctPassword) {
+      sessionStorage.setItem("admin_authenticated", "true");
+      setIsAuthenticated(true);
+      setPasswordError("");
+    } else {
+      setPasswordError("Kata sandi yang Anda masukkan salah.");
+      setIsShaking(true);
+      setTimeout(() => setIsShaking(false), 500);
+    }
+  };
 
   // Starry backdrop generator
   useEffect(() => {
@@ -46,7 +62,7 @@ export default function AdminPage() {
 
   // Fetch initial data from Supabase
   useEffect(() => {
-    if (isLocalhost === false) return; // Skip fetching if access denied
+    if (isAuthenticated !== true) return; // Skip fetching if not authenticated
 
     const fetchData = async () => {
       try {
@@ -110,7 +126,7 @@ export default function AdminPage() {
     };
 
     fetchData();
-  }, [isLocalhost]);
+  }, [isAuthenticated]);
 
   // Story CRUD Handlers
   const handleAddStory = async (newStoryData: Omit<Story, "id" | "createdAt">) => {
@@ -233,32 +249,106 @@ export default function AdminPage() {
     }
   };
 
-  // Render Access Denied for non-localhost
-  if (isLocalhost === false) {
+  // Password screen when not authenticated
+  if (isAuthenticated === false) {
     return (
-      <div className="min-h-screen bg-[#0d0c0b] text-white flex flex-col items-center justify-center p-6 text-center select-none">
-        <div className="max-w-md w-full border border-red-950/40 bg-red-950/10 backdrop-blur-md p-8 rounded-3xl shadow-xl flex flex-col gap-4 items-center">
-          <span className="text-red-500 font-bold uppercase tracking-widest text-xs">Akses Ditolak</span>
-          <h1 className="text-xl font-bold font-serif">Hanya Dapat Diakses Via Localhost</h1>
-          <p className="text-xs text-zinc-400 leading-relaxed">
-            Untuk alasan keamanan, halaman penulis dongeng (admin panel) hanya dapat diakses melalui koneksi lokal (localhost).
-          </p>
-          <button
-            onClick={() => router.push("/")}
-            className="mt-2 bg-zinc-800 hover:bg-zinc-700 text-white px-5 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors cursor-pointer"
-          >
-            Kembali Ke Beranda
-          </button>
+      <main className="min-h-screen bg-background text-[#f4f4f5] relative flex flex-col items-center justify-center p-4 select-none overflow-hidden">
+        {/* CSS Keyframes for Shake */}
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-6px); }
+            40%, 80% { transform: translateX(6px); }
+          }
+          .animate-shake {
+            animation: shake 0.4s ease-in-out;
+          }
+        `}} />
+        
+        {/* Background Starry Sky */}
+        <StarryBackdrop stars={stars} shootingStars={[]} />
+
+        {/* Password Card Container */}
+        <div className="relative z-10 w-full max-w-sm p-0.5 rounded-3xl bg-linear-to-b from-purple-500/10 to-pink-500/5 shadow-2xl">
+          <div className={`bg-[#0c0a09]/90 backdrop-blur-xl p-8 rounded-[22px] flex flex-col gap-6 items-center border border-zinc-900/60 ${isShaking ? 'animate-shake' : ''}`}>
+            
+            {/* Logo/Icon Header */}
+            <div className="w-12 h-12 rounded-full bg-linear-to-tr from-purple-500/10 to-pink-500/10 flex items-center justify-center border border-purple-500/20 shadow-inner">
+              <Lock className="w-4 h-4 text-purple-400" />
+            </div>
+
+            {/* Title & Desc */}
+            <div className="text-center flex flex-col gap-1.5">
+              <h1 className="text-xl font-bold font-serif bg-linear-to-r from-purple-200 via-zinc-100 to-pink-200 bg-clip-text text-transparent">
+                Akses Terproteksi
+              </h1>
+              <p className="text-[11px] text-zinc-400 max-w-xs mx-auto leading-relaxed">
+                Halaman penulis dongeng dilindungi kata sandi. Silakan masukkan kata sandi Anda untuk melanjutkan.
+              </p>
+            </div>
+
+            {/* Input Form */}
+            <form onSubmit={handlePasswordSubmit} className="w-full flex flex-col gap-3">
+              <div className="relative w-full">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Kata Sandi Admin"
+                  value={passwordInput}
+                  onChange={(e) => {
+                    setPasswordInput(e.target.value);
+                    if (passwordError) setPasswordError("");
+                  }}
+                  className="w-full bg-[#141211] border border-zinc-800 focus:border-purple-500/65 rounded-xl px-4 py-2.5 text-xs text-zinc-200 placeholder:text-zinc-600 outline-none transition-all duration-300 pr-10"
+                  autoFocus
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 hover:text-zinc-300 transition-colors"
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-3.5 h-3.5" />
+                  ) : (
+                    <Eye className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
+
+              {/* Error Message */}
+              {passwordError && (
+                <span className="text-[10px] text-red-400 text-center font-medium block">
+                  {passwordError}
+                </span>
+              )}
+
+              {/* Submit Button */}
+              <button
+                type="submit"
+                className="w-full mt-1 bg-linear-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-medium py-2.5 px-4 rounded-xl text-[10px] uppercase tracking-wider transition-all duration-300 shadow-md shadow-purple-500/10 active:scale-[0.98] cursor-pointer"
+              >
+                Masuk
+              </button>
+            </form>
+
+            {/* Back Button */}
+            <button
+              onClick={() => router.push("/")}
+              className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+            >
+              <ArrowLeft className="w-3 h-3" />
+              Kembali ke Beranda
+            </button>
+          </div>
         </div>
-      </div>
+      </main>
     );
   }
 
   // Loading check state
-  if (isLocalhost === null) {
+  if (isAuthenticated === null) {
     return (
       <div className="min-h-screen bg-[#0d0c0b] text-white flex flex-col items-center justify-center select-none">
-        <span className="text-xs text-muted-custom animate-pulse">Memeriksa hak akses...</span>
+        <span className="text-xs text-zinc-500 animate-pulse">Memverifikasi sesi...</span>
       </div>
     );
   }
@@ -283,4 +373,5 @@ export default function AdminPage() {
       />
     </main>
   );
+
 }
