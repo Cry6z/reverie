@@ -59,7 +59,7 @@ export default function Hero({
 
       {/* Mobile Floating Moon (Absolute top-right, decorative and compact watermark) */}
       <div 
-        className={`block lg:hidden absolute top-[110px] right-4 z-0 origin-top-right pointer-events-auto transition-all duration-1500 delay-700 cubic-bezier(0.175, 0.885, 0.32, 1.275) transform ${
+        className={`block lg:hidden absolute top-27.5 right-4 z-0 origin-top-right pointer-events-auto transition-all duration-1500 delay-700 cubic-bezier(0.175, 0.885, 0.32, 1.275) transform ${
           isUnlocked ? "opacity-30 scale-[0.6] rotate-0" : "opacity-0 scale-0 -rotate-45"
         }`}
         style={{
@@ -69,7 +69,7 @@ export default function Hero({
           transition: "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.5s delay-[700ms]"
         }}
       >
-        <div className="relative flex items-center justify-center w-[180px] h-[180px] orb-container cursor-pointer select-none">
+        <div className="relative flex items-center justify-center w-45 h-45 orb-container cursor-pointer select-none">
           {/* Orbiting star dots */}
           <div className="orbiting-star orbit-star-1" />
           <div className="orbiting-star orbit-star-2" />
@@ -137,7 +137,7 @@ export default function Hero({
             transition: "transform 0.25s cubic-bezier(0.25, 1, 0.5, 1), opacity 1.5s delay-[700ms]"
           }}
         >
-          <div className="relative flex items-center justify-center w-[180px] h-[180px] orb-container cursor-pointer select-none">
+          <div className="relative flex items-center justify-center w-45 h-45 orb-container cursor-pointer select-none">
             {/* Orbiting star dots */}
             <div className="orbiting-star orbit-star-1" />
             <div className="orbiting-star orbit-star-2" />
