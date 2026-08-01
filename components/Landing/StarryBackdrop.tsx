@@ -56,8 +56,8 @@ export default function StarryBackdrop({ stars, shootingStars }: StarryBackdropP
       ))}
 
       {/* Subtle slow night glows */}
-      <div className="night-glow top-[-100px] left-[5%]" />
-      <div className="night-glow bottom-[-50px] right-[10%]" />
+      <div className="night-glow -top-25 left-[5%]" />
+      <div className="night-glow -bottom-12.5 right-[10%]" />
     </div>
   );
 }
